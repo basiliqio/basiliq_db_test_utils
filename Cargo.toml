@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "basiliq_db_test_proc_macro",
+	"basiliq_db_test_utils"
+]
