@@ -9,6 +9,7 @@ edition = "2018"
 proc-macro = true
 
 [dependencies]
-syn = {version="1.0.57",features=["full","fold"]}
+syn = {version="1",features=["full","fold"]}
 quote = "1.0.8"
-proc-macro2 = "1.0.24"
+proc-macro2 = "1"
+basiliq_db_test_utils = { version = "*", path = "../basiliq_db_test_utils", package = "basiliq_db_test_utils"}

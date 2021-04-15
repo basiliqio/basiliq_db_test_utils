@@ -3,7 +3,6 @@ use std::str::FromStr;
 use std::sync::Mutex;
 use uuid::Uuid;
 
-#[cfg(feature = "migrations")]
 mod embedded_migrations {
     use refinery::embed_migrations;
     embed_migrations!("./tests_migrations");
@@ -12,15 +11,10 @@ mod embedded_migrations {
 lazy_static! {
     pub static ref BASILIQ_DATABASE_URL: String =
         std::env::var("BASILIQ_DATABASE_URL").expect("the database url to be set");
-}
-
-#[cfg(feature = "migrations")]
-lazy_static! {
     pub static ref BASILIQ_DEFAULT_DATABASE: String = format!("basiliq_test_{}", Uuid::new_v4());
     pub static ref BASILIQ_DEFAULT_DATABASE_INIT: Mutex<bool> = Mutex::new(false);
 }
 
-#[cfg(feature = "migrations")]
 pub async fn run_migrations(db_name: &str) {
     let mut config = refinery::config::Config::from_env_var("BASILIQ_DATABASE_URL")
         .expect("to parse the basiliq database url")
@@ -39,30 +33,25 @@ pub fn connect_to_management_pool() -> sqlx::PgPool {
         .connect_lazy(&BASILIQ_DATABASE_URL)
         .expect("to initialize the management Postgres connection pool")
 }
-pub async fn init_db() -> (String, sqlx::PgPool) {
+pub async fn init_db(should_run_migrations: bool) -> (String, sqlx::PgPool) {
     let management_pool = connect_to_management_pool();
-    #[cfg(feature = "migrations")]
+    let mut init_bool = BASILIQ_DEFAULT_DATABASE_INIT
+        .lock()
+        .expect("the database management mutex is poisoned");
     {
-        let mut init_bool = BASILIQ_DEFAULT_DATABASE_INIT
-            .lock()
-            .expect("the database management mutex is poisoned");
-        #[cfg(feature = "migrations")]
-        {
-            if !*init_bool {
-                sqlx::query(
-                    format!("CREATE DATABASE \"{}\";", BASILIQ_DEFAULT_DATABASE.as_str()).as_str(),
-                )
-                .execute(&management_pool)
-                .await
-                .expect("to create a new database");
-                run_migrations(BASILIQ_DEFAULT_DATABASE.as_str()).await;
-                *init_bool = true;
-            }
+        if !*init_bool {
+            sqlx::query(
+                format!("CREATE DATABASE \"{}\";", BASILIQ_DEFAULT_DATABASE.as_str()).as_str(),
+            )
+            .execute(&management_pool)
+            .await
+            .expect("to create a new database");
+            run_migrations(BASILIQ_DEFAULT_DATABASE.as_str()).await;
+            *init_bool = true;
         }
     }
     let db_name = format!("basiliq_test_{}", Uuid::new_v4());
-    #[cfg(feature = "migrations")]
-    {
+    if should_run_migrations {
         sqlx::query(
             format!(
                 "CREATE DATABASE \"{}\" WITH TEMPLATE \"{}\";",
@@ -74,9 +63,7 @@ pub async fn init_db() -> (String, sqlx::PgPool) {
         .execute(&management_pool)
         .await
         .expect("to create a new database");
-    }
-    #[cfg(not(feature = "migrations"))]
-    {
+    } else {
         sqlx::query(format!("CREATE DATABASE \"{}\";", db_name.as_str(),).as_str())
             .execute(&management_pool)
             .await
@@ -88,8 +75,7 @@ pub async fn init_db() -> (String, sqlx::PgPool) {
     let pool = sqlx::pool::PoolOptions::new()
         .max_connections(1)
         .connect_lazy_with(conn_opt);
-    #[cfg(not(feature = "migrations"))]
-    {
+    if !should_run_migrations {
         sqlx::query("CREATE EXTENSION \"uuid-ossp\";")
             .execute(&pool)
             .await
