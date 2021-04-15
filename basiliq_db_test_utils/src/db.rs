@@ -86,8 +86,7 @@ pub async fn init_db() -> (String, sqlx::PgPool) {
         .expect("to parse the basiliq database url")
         .database(db_name.as_str());
     let pool = sqlx::pool::PoolOptions::new()
-        .min_connections(1)
-        .max_connections(3)
+        .max_connections(1)
         .connect_lazy_with(conn_opt);
     #[cfg(not(feature = "migrations"))]
     {
