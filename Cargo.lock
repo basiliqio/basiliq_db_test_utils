@@ -85,7 +85,6 @@ name = "basiliq_db_test_utils"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "ciboulette2postgres_test_proc_macro",
  "lazy_static",
  "num_cpus",
  "refinery",
@@ -168,16 +167,6 @@ dependencies = [
  "num-traits",
  "time",
  "winapi",
-]
-
-[[package]]
-name = "ciboulette2postgres_test_proc_macro"
-version = "0.1.0"
-source = "git+https://gitlab.com/basiliq/ciboulette2postgres.git#bfc973c9b54b4f1a919ece7c50052ff8117c6b82"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]

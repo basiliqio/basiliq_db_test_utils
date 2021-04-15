@@ -6,10 +6,6 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies.ciboulette2postgres_test_proc_macro]
-git = "https://gitlab.com/basiliq/ciboulette2postgres.git"
-package = "ciboulette2postgres_test_proc_macro"
-
 [dependencies.sqlx]
 features = ["runtime-tokio-rustls", "postgres", "uuid", "macros", "json"]
 version = "0.5"
