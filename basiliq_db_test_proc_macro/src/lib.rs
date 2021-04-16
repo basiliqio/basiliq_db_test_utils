@@ -34,15 +34,7 @@ pub fn basiliq_test(metadata: TokenStream, input: TokenStream) -> TokenStream {
         async fn #function_name()
         {
             let (db_id, pool) = basiliq_db_test_utils::init_db(#run_migrations).await;
-            sqlx::query("BEGIN")
-                .execute(&pool)
-                .await
-                .expect("BEGIN failed");
             #new_function_name(pool.clone()).await;
-            sqlx::query("ROLLBACK")
-                .execute(&pool)
-                .await
-                .expect("ROLLBACK failed");
             pool.close().await;
             basiliq_db_test_utils::deinit_db(db_id).await;
         }

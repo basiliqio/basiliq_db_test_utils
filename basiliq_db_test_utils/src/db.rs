@@ -73,7 +73,9 @@ pub async fn init_db(should_run_migrations: bool) -> (String, sqlx::PgPool) {
         .expect("to parse the basiliq database url")
         .database(db_name.as_str());
     let pool = sqlx::pool::PoolOptions::new()
-        .max_connections(1)
+        .test_before_acquire(false)
+        .min_connections(1)
+        .max_connections(3)
         .connect_lazy_with(conn_opt);
     if !should_run_migrations {
         sqlx::query("CREATE EXTENSION \"uuid-ossp\";")
