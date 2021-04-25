@@ -33,21 +33,26 @@ pub fn connect_to_management_pool() -> sqlx::PgPool {
         .connect_lazy(&BASILIQ_DATABASE_URL)
         .expect("to initialize the management Postgres connection pool")
 }
-pub async fn init_db(should_run_migrations: bool) -> (String, sqlx::PgPool) {
+pub async fn init_db(
+    should_run_migrations: bool,
+    should_init_values: bool,
+) -> (String, sqlx::PgPool) {
     let management_pool = connect_to_management_pool();
-    let mut init_bool = BASILIQ_DEFAULT_DATABASE_INIT
-        .lock()
-        .expect("the database management mutex is poisoned");
     {
-        if !*init_bool {
-            sqlx::query(
-                format!("CREATE DATABASE \"{}\";", BASILIQ_DEFAULT_DATABASE.as_str()).as_str(),
-            )
-            .execute(&management_pool)
-            .await
-            .expect("to create a new database");
-            run_migrations(BASILIQ_DEFAULT_DATABASE.as_str()).await;
-            *init_bool = true;
+        let mut init_bool = BASILIQ_DEFAULT_DATABASE_INIT
+            .lock()
+            .expect("the database management mutex is poisoned");
+        {
+            if !*init_bool {
+                sqlx::query(
+                    format!("CREATE DATABASE \"{}\";", BASILIQ_DEFAULT_DATABASE.as_str()).as_str(),
+                )
+                .execute(&management_pool)
+                .await
+                .expect("to create a new database");
+                run_migrations(BASILIQ_DEFAULT_DATABASE.as_str()).await;
+                *init_bool = true;
+            }
         }
     }
     let db_name = format!("basiliq_test_{}", Uuid::new_v4());
@@ -72,7 +77,7 @@ pub async fn init_db(should_run_migrations: bool) -> (String, sqlx::PgPool) {
     let conn_opt = sqlx::postgres::PgConnectOptions::from_str(&BASILIQ_DATABASE_URL)
         .expect("to parse the basiliq database url")
         .database(db_name.as_str());
-    let pool = sqlx::pool::PoolOptions::new()
+    let mut pool = sqlx::pool::PoolOptions::new()
         .test_before_acquire(false)
         .min_connections(1)
         .max_connections(3)
@@ -82,6 +87,8 @@ pub async fn init_db(should_run_migrations: bool) -> (String, sqlx::PgPool) {
             .execute(&pool)
             .await
             .expect("to create uuid extension in the database");
+    } else if should_init_values {
+        super::init_values::run(&mut pool).await;
     }
     (db_name, pool)
 }
