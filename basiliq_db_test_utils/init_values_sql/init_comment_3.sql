@@ -1,2 +1,2 @@
 INSERT INTO comments ("id", "author", "article", "body")
-    VALUES ('c2add83b-6f58-45a2-bf62-3ebc05c46192', $1, $2, 'Vous savez, moi je ne crois pas qu"il y ait de bonne ou de mauvaise situation. Moi, si je devais résumer ma vie aujourd"hui avec vous, je dirais que c"est d"abord des rencontres. Des gens qui m"ont tendu la main, peut-être à un moment où je ne pouvais pas, où j"étais seul chez moi.') RETURNING id;
+    VALUES ($1, $2, $3, 'Vous savez, moi je ne crois pas qu"il y ait de bonne ou de mauvaise situation. Moi, si je devais résumer ma vie aujourd"hui avec vous, je dirais que c"est d"abord des rencontres. Des gens qui m"ont tendu la main, peut-être à un moment où je ne pouvais pas, où j"étais seul chez moi.') RETURNING id;
