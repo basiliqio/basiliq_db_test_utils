@@ -9,14 +9,14 @@ mod embedded_migrations {
 }
 
 lazy_static! {
-    pub static ref BASILIQ_DATABASE_URL: String =
-        std::env::var("BASILIQ_DATABASE_URL").expect("the database url to be set");
+    pub static ref DATABASE_URL: String =
+        std::env::var("DATABASE_URL").expect("the database url to be set");
     pub static ref BASILIQ_DEFAULT_DATABASE: String = format!("basiliq_test_{}", Uuid::new_v4());
     pub static ref BASILIQ_DEFAULT_DATABASE_INIT: Mutex<bool> = Mutex::new(false);
 }
 
 pub async fn run_migrations(db_name: &str) {
-    let mut config = refinery::config::Config::from_env_var("BASILIQ_DATABASE_URL")
+    let mut config = refinery::config::Config::from_env_var("DATABASE_URL")
         .expect("to parse the basiliq database url")
         .set_db_name(db_name);
     embedded_migrations::migrations::runner()
@@ -30,7 +30,7 @@ pub fn connect_to_management_pool() -> sqlx::PgPool {
     sqlx::pool::PoolOptions::new()
         .min_connections(1)
         .max_connections(num as u32)
-        .connect_lazy(&BASILIQ_DATABASE_URL)
+        .connect_lazy(&DATABASE_URL)
         .expect("to initialize the management Postgres connection pool")
 }
 pub async fn init_db(
@@ -74,7 +74,7 @@ pub async fn init_db(
             .await
             .expect("to create a new database");
     }
-    let conn_opt = sqlx::postgres::PgConnectOptions::from_str(&BASILIQ_DATABASE_URL)
+    let conn_opt = sqlx::postgres::PgConnectOptions::from_str(&DATABASE_URL)
         .expect("to parse the basiliq database url")
         .database(db_name.as_str());
     let mut pool = sqlx::pool::PoolOptions::new()
