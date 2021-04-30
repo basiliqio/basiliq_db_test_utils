@@ -24,6 +24,16 @@ pub async fn run_migrations(db_name: &str) {
         .await
         .expect("to apply migrations");
 }
+
+pub async fn run_migrations_in_current_db() {
+    let mut config = refinery::config::Config::from_env_var("DATABASE_URL")
+        .expect("to parse the basiliq database url");
+    embedded_migrations::migrations::runner()
+        .run_async(&mut config)
+        .await
+        .expect("to apply migrations");
+}
+
 pub fn connect_to_management_pool() -> sqlx::PgPool {
     let num = num_cpus::get();
 
