@@ -39,6 +39,6 @@ pack_test_migrations:
     - mkdir -p .git/hooks
     - mkdir -p target/cov/
   script:
-    - pg_isready -t 120
+    - for i in $(seq 1 120); do ; PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres pg_isready -t10 ; sleep 1 ; done
     - ./basiliq_db_init_bin
     - pg_dumpall -c > basiliq_test.dump
