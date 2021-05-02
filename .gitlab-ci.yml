@@ -39,6 +39,6 @@ pack_test_migrations:
     - mkdir -p .git/hooks
     - mkdir -p target/cov/
   script:
-    - for i in $(seq 1 120); do pg_isready -t 10; sleep 1; done
+    - while ! pg_isready ; do echo "$(date) - waiting for database to start"; sleep 3; done
     - ./basiliq_db_init_bin
     - pg_dumpall -c > basiliq_test.dump
