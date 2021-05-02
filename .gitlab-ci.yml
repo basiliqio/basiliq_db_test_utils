@@ -1,0 +1,44 @@
+stages:
+  - build
+  - pack
+
+build_migrations_bin:
+  stage: build
+  image: ekidd/rust-musl-builder
+  artifacts:
+    paths:
+      - basiliq_db_init
+    expire_in: 1 week
+  before_script:
+    - mkdir -p .git/hooks
+  script:
+    - cd basiliq_db_init/
+    - cargo build --release
+    - mv basiliq_db_init/target/x86_64-unknown-linux-musl/release/basiliq_db_init .
+  
+pack_test_migrations:
+  stage: pack
+  image: postgres
+  services:
+    - name: postgres:latest
+      alias: postgres
+  artifacts:
+    paths:
+      - basiliq_test.dump
+    expire_in: 1 week
+  needs:
+    - build_migrations_bin
+  dependencies:
+    - build_migrations_bin
+  variables:
+    PGHOST: postgres
+    PGUSER: postgres
+    PGPASSWORD: postgres
+    PGDB: postgres
+    DATABASE_URL: postgres://postgres:postgres@postgres/postgres
+  before_script:
+    - mkdir -p .git/hooks
+    - mkdir -p target/cov/
+  script:
+    - basiliq_db_init
+    - PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres pg_dumpall -c > basiliq_test.dump
