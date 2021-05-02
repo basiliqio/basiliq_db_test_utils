@@ -30,6 +30,10 @@ pack_test_migrations:
   dependencies:
     - build_migrations_bin
   variables:
+    POSTGRES_DB: postgres
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    POSTGRES_HOST_AUTH_METHOD: trust
     PGHOST: postgres
     PGUSER: postgres
     PGPASSWORD: postgres
