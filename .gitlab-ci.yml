@@ -7,13 +7,13 @@ build_migrations_bin:
   image: ekidd/rust-musl-builder
   artifacts:
     paths:
-      - basiliq_db_init
+      - basiliq_db_init_bin
     expire_in: 1 week
   before_script:
     - mkdir -p .git/hooks
   script:
     - cargo build --release
-    - mv target/x86_64-unknown-linux-musl/release/basiliq_db_init .
+    - mv target/x86_64-unknown-linux-musl/release/basiliq_db_init basiliq_db_init_bin
   
 pack_test_migrations:
   stage: pack
@@ -39,5 +39,5 @@ pack_test_migrations:
     - mkdir -p .git/hooks
     - mkdir -p target/cov/
   script:
-    - basiliq_db_init
+    - ./basiliq_db_init_bin
     - PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres pg_dumpall -c > basiliq_test.dump
