@@ -12,9 +12,8 @@ build_migrations_bin:
   before_script:
     - mkdir -p .git/hooks
   script:
-    - cd basiliq_db_init/
     - cargo build --release
-    - mv basiliq_db_init/target/x86_64-unknown-linux-musl/release/basiliq_db_init .
+    - mv /target/x86_64-unknown-linux-musl/release/basiliq_db_init .
   
 pack_test_migrations:
   stage: pack
