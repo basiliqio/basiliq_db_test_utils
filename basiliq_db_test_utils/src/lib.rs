@@ -7,5 +7,4 @@ pub use db::{
 };
 pub use init_values::{
     run as init_values, ARTICLES_IDS, COMMENTS_IDS, FAVORITE_COLOR_IDS, PEOPLES_IDS,
-    PEOPLE_ARTICLE_ID,
 };

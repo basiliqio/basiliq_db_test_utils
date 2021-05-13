@@ -23,12 +23,6 @@ lazy_static! {
         Uuid::parse_str("6ae9938f-d490-4707-b138-770c2a52465f").unwrap(),
         Uuid::parse_str("c2add83b-6f58-45a2-bf62-3ebc05c46192").unwrap()
     ];
-    pub static ref PEOPLE_ARTICLE_ID: [Uuid; 4] = [
-        Uuid::parse_str("538d2b60-cb73-4b7d-bc39-cceac6abecb8").unwrap(),
-        Uuid::parse_str("f77b0017-1dfd-4ea1-b036-b228289f89e0").unwrap(),
-        Uuid::parse_str("38e9e927-d748-46a8-a843-f9f3c31b83a9").unwrap(),
-        Uuid::parse_str("f0523b1e-30df-418d-83dc-876e4c78cfa9").unwrap(),
-    ];
 }
 
 const FAVORITE_COLOR_INIT_FILES: [&str; 3] = [
@@ -122,11 +116,10 @@ async fn init_link_article_author(
     pool: &mut sqlx::PgPool,
     peoples_id: &[Uuid],
     articles_id: &[Uuid],
-) -> Vec<Uuid> {
-    let mut article_author_id: Vec<Uuid> = Vec::with_capacity(3);
+) -> Vec<String> {
+    let mut article_author_id: Vec<String> = Vec::with_capacity(3);
     for (idx, article_id) in articles_id.iter().enumerate() {
-        let id: (Uuid,) = sqlx::query_as(PEOPLE_ARTICLE)
-            .bind(PEOPLE_ARTICLE_ID[idx + 1])
+        let id: (String,) = sqlx::query_as(PEOPLE_ARTICLE)
             .bind(peoples_id[idx % 2])
             .bind(article_id)
             .fetch_one(&mut pool.acquire().await.unwrap())
@@ -134,8 +127,7 @@ async fn init_link_article_author(
             .unwrap();
         article_author_id.push(id.0);
     }
-    let id: (Uuid,) = sqlx::query_as(PEOPLE_ARTICLE)
-        .bind(PEOPLE_ARTICLE_ID[0])
+    let id: (String,) = sqlx::query_as(PEOPLE_ARTICLE)
         .bind(peoples_id[1])
         .bind(articles_id[0])
         .fetch_one(&mut pool.acquire().await.unwrap())
@@ -145,18 +137,18 @@ async fn init_link_article_author(
     article_author_id
 }
 
-pub async fn run(pool: &mut sqlx::PgPool) -> BTreeMap<String, Vec<Uuid>> {
-    let mut res: BTreeMap<String, Vec<Uuid>> = BTreeMap::new();
+pub async fn run(pool: &mut sqlx::PgPool) -> BTreeMap<String, Vec<String>> {
+    let mut res: BTreeMap<String, Vec<String>> = BTreeMap::new();
     let favorite_color_id = init_favorite_colors(&mut *pool).await;
     let article_id = init_articles(&mut *pool).await;
     let peoples_id = init_peoples(&mut *pool, &&favorite_color_id).await;
     let comment_id = init_comments(&mut *pool, &peoples_id, &article_id).await;
     let people_article = init_link_article_author(&mut *pool, &peoples_id, &article_id).await;
 
-    res.insert("favorite_color".to_string(), favorite_color_id);
-    res.insert("peoples".to_string(), peoples_id);
-    res.insert("articles".to_string(), article_id);
-    res.insert("comments".to_string(), comment_id);
+    res.insert("favorite_color".to_string(), favorite_color_id.into_iter().map(|x| x.to_string()).collect());
+    res.insert("peoples".to_string(), peoples_id.into_iter().map(|x| x.to_string()).collect());
+    res.insert("articles".to_string(), article_id.into_iter().map(|x| x.to_string()).collect());
+    res.insert("comments".to_string(), comment_id.into_iter().map(|x| x.to_string()).collect());
     res.insert("people-article".to_string(), people_article);
     res
 }
