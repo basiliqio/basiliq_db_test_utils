@@ -45,4 +45,4 @@ pack_test_migrations:
   script:
     - while ! pg_isready ; do echo "$(date) - waiting for database to start"; sleep 3; done
     - ./basiliq_db_init_bin
-    - pg_dumpall -c > basiliq_test.dump
+    - pg_dump -Fc > basiliq_test.dump
